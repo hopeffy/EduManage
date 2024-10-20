@@ -1,0 +1,14 @@
+# Excelden öğrenci verisi okuma
+# csv dosyasından öğrenci okuma
+# databaseden öğrenci okuma
+# öğrenci ve lecturer objesini dict hale getir.
+
+## use cases
+# ders ekle (ders listesini dön/listede yoksa yeni ekleme/)
+# derse lecturer ekle (lecturer listesini dön/listede yoksa yeni ekleme/)
+# derse öğrenci ekle (öğrenci listesini dön/listede yoksa yeni ekleme/
+    + birden fazla öğrenci seçebilme olması lazım)
+
+# many to many relations - student & lecture - enrollment
+# one to many relations - lecturer & lecture - a lecture has a one lecturer.
+bondocks
