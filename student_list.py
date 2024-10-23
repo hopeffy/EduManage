@@ -1,3 +1,5 @@
+import csv
+
 from student import Student
 
 
@@ -30,6 +32,22 @@ class StudentList:  # StudentList class
         else:
             for student in self.student_list:
                 print(student.person)
+
+    def save_students_to_csv(self, filename='students.csv'):
+        with open(filename, 'w', newline='', encoding='utf-8') as f:
+            csv_writer = csv.writer(f)
+            csv_writer.writerow(['TCK', 'Name and Surname', 'Role'])
+            for student in self.student_list:
+                csv_writer.writerow([student.tck_no, student.name_surname, student.role])
+        print(f'Lecturers saved to {filename}')
+
+    def find_by_tck(self, student_tck):
+        for student in self.student_list:
+            if student.tck_no == student_tck:
+                return student
+            else:
+                return
+
 
 
 

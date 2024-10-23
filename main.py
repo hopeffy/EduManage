@@ -1,88 +1,133 @@
 import csv
-
+import keyboard
 from lecture import Lecture
 from lecture_list import LectureList
 from lecturer_list import LecturerList
 from student import Student
 from student_list import StudentList
-import keyboard
 
-
-class Main:
-    def __init__(self):
-        self.student_list = StudentList()
-        self.lecturer_list = LecturerList()
-        while True:
-            print("Whats up buddy. U student or lecturer_f\nSelect your role:\n1-student\n2-lecturer_f\n3-display list")
-            role_number = input()
-            if role_number == "1":
-                print("tck")
-                student_tck = input()
-                print("name and surname")
-                student_name_and_surname = input()
-                student = Student(student_tck, student_name_and_surname)
-                self.student_list.add_student(student)
-
-            elif role_number == "2":
-                print("tck")
-                l_tck = input()
-                print("name and surname")
-                l_name_and_surname = input()
-                lecturer = (l_tck, l_name_and_surname)
-                self.lecturer_list.add_lecturer(lecturer)
-
-            elif role_number == "3":
-                self.student_list.display()
-
-
-def save_to_csv_file(listA):
-    with open('lecture_list.csv', 'w', newline='', encoding='utf-8') as csvfile:
+# Utility function to save list to a CSV file
+def save_to_csv_file(listA, headers, filename='lecture_list.csv'):
+    with open(filename, 'w', newline='', encoding='utf-8') as csvfile:
         csv_writer = csv.writer(csvfile)
-        csv_writer.writerows(['code', 'title'])
+        csv_writer.writerow(headers)
         for l in listA:
             csv_writer.writerow(l)
 
-
-class Use:
+class MainApp:
     def __init__(self):
-        self.sList = StudentList()
-        self.lList = LecturerList()
-        self.lecList = LectureList()
+        self.student_list = StudentList()
+        self.lecturer_list = LecturerList()
+        self.lecture_list = LectureList()
 
-        print("Ders listesi: ")
-        self.lecList.display()
-        print("Yeni ders eklemek için ctr'a basıp virgülle ayrılmış şekilde code, ismini gir")
+        self.listen_for_shortcuts()
+        self.main_menu()
 
-        keyboard.add_hotkey('ctrl+space', self.save_file)
+    # Add a listener for Ctrl+Space to save and exit
+    def listen_for_shortcuts(self):
+        keyboard.add_hotkey('ctrl+space', self.save_and_exit)
 
+    # Main menu for handling roles and actions
+    def main_menu(self):
         while True:
-            keyboard.read_key()
-            if keyboard.is_pressed("ctrl+space"):
-                print("ctrl+space basıldı")
-                save_to_csv_file(self.lecList.lecture_list)
-                print("dosya kaydedildi")
-                break
-            if keyboard.is_pressed("CTRL"):
-                print("ctrlye bastın hll")
-                nl = input()
-                l = nl.split(",")
-                lecture = Lecture(lecture_code=l[0], lecture_title=l[1], lecturer_tck=l[2])  # code - title - lecturer_f tck
-                self.lecList.add_lecture(lecture_code=lecture.code, lecture_title=lecture.title, lecturer_tck=lecture.lecturer)
-                self.lecList.display()
-                print("yeniden ders eklemek için ctrle bas, devam etmek için tab'a bas.")
+            print("\nChoose an action:\n1 - Add Lecture\n2 - Add Lecturer to Lecture\n3 - Add Students to Lecture\n4 - Display All Lectures")
+            action = input()
 
+            if action == "1":
+                self.add_lecture()
+            elif action == "2":
+                self.add_lecturer_to_lecture()
+            elif action == "3":
+                self.add_students_to_lecture()
+            elif action == "4":
+                self.display_lectures()
+            else:
+                print("Invalid choice, please try again.")
 
+    # Add a new lecture to the list
+    def add_lecture(self):
+        print("Enter lecture code, title (comma-separated):")
+        input_data = input().split(",")
+        lecture_code, lecture_title = input_data[0], input_data[1]
 
+        if self.lecture_list.find_by_code(lecture_code):
+            print(f"Lecture {lecture_code} already exists.")
+        else:
+            # lecture = Lecture(lecture_code, lecture_title, None)  # Lecturer is None initially
+            self.lecture_list.add_lecture(lecture_code, lecture_title, None)
+            print(f"Lecture {lecture_title} added.")
 
+    # Add a lecturer to a lecture
+    def add_lecturer_to_lecture(self):
+        self.display_lectures()
 
+        print("Enter the lecture code to assign a lecturer:")
+        lecture_code = input()
 
+        lecture = self.lecture_list.find_by_code(lecture_code)
+        if lecture:
+            print("Enter Lecturer TCK and Name (comma-separated):")
+            lecturer_data = input().split(",")
+            lecturer_tck, lecturer_name = lecturer_data[0], lecturer_data[1]
 
-    def save_file(self):
-        save_to_csv_file(self.lecList.lecture_list)
-        print("dosya kaydedildi")
+            lecturer = self.lecturer_list.find_by_tck(lecturer_tck)
+            if not lecturer:
+                self.lecturer_list.add_lecturer(lecturer_tck, lecturer_name)
+                lecturer = self.lecturer_list.find_by_tck(lecturer_tck)
+                print(f"Lecturer {lecturer_name} added.")
+
+            lecture.lecturer = lecturer.tck_no
+            print(f"Lecturer {lecturer_name} assigned to {lecture.title}.")
+        else:
+            print(f"Lecture {lecture_code} not found.")
+
+    # Add multiple students to a lecture
+    def add_students_to_lecture(self):
+        self.display_lectures()
+
+        print("Enter the lecture code to assign students:")
+        lecture_code = input()
+
+        lecture = self.lecture_list.find_by_code(lecture_code)
+        if lecture:
+            print("Enter student TCK and Name (comma-separated), or 'done' to finish:")
+            while True:
+                student_data = input().strip()
+                if student_data.lower() == 'done':
+                    break
+                student_tck, student_name = student_data.split(",")
+
+                student = self.student_list.find_by_tck(student_tck)
+                if not student:
+                    student = Student(student_tck, student_name)
+                    self.student_list.add_student(student)
+                    print(f"Student {student_name} added.")
+
+                # Ensure students are not duplicated in lecture's student list
+                if student_tck not in lecture.students:
+                    lecture.students.append(student_tck)
+                    print(f"Student {student_name} added to {lecture.title}.")
+                else:
+                    print(f"Student {student_name} is already in {lecture.title}.")
+        else:
+            print(f"Lecture {lecture_code} not found.")
+
+    # Display all lectures with their details
+    def display_lectures(self):
+        if not self.lecture_list.lecture_list:
+            print("No lectures available.")
+        else:
+            for lecture in self.lecture_list.lecture_list:
+                lecturer_name = self.lecturer_list.get_name_by_tck(lecture.lecturer)
+                print(f"Lecture Code: {lecture.code}, Title: {lecture.title}, Lecturer: {lecturer_name}, Students: {lecture.display_students()}")
+
+    # Save lectures to CSV and exit
+    def save_and_exit(self):
+        save_to_csv_file(self.lecture_list.lecture_list, ['code', 'title', 'lecturer_tck', 'students'], filename='lectures.csv')
+        print("Lecture list saved to CSV file. Exiting.")
         exit()
 
 
-# Make sure to instantiate and run Main
+# Ensure the app runs
 if __name__ == "__main__":
-    Use()
+    MainApp()

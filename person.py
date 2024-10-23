@@ -8,6 +8,9 @@ class Person:  # Person class
             'role': role
         }
 
+    def __str__(self):
+        return f'TCK: {self.tck_no}, Name: {self.name_surname}, Role: {self.role}'
+
     @property
     def tck_no(self):
         return self.person["tck_no"]

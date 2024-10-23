@@ -1,3 +1,5 @@
+import csv
+
 from lecture import Lecture
 
 
@@ -29,4 +31,20 @@ class LectureList:
         else:
             for l in self.lecture_list:
                 print(l.lecture)
+
+    def save_lecture_to_csv(self, filename='lecture.csv'):
+        with open(filename, 'w', newline='', encoding='utf-8') as f:
+            csv_writer = csv.writer(f)
+            csv_writer.writerow(['TCK', 'Name and Surname', 'Role'])
+            for lecture in self.lecture_list:
+                csv_writer.writerow([lecture.code, lecture.title, lecture.lecturer])
+        print(f'Lecturers saved to {filename}')
+
+    def find_by_code(self, code):
+        for lecture in self.lecture_list:
+            if lecture.code == code:
+                return lecture
+            else:
+                return
+
 
